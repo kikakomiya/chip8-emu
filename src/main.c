@@ -12,36 +12,64 @@ struct instruction
     uint16_t arg3;
 };
 
-void getInstruction(uint16_t opcode)
+struct instruction getInstruction(uint16_t opcode)
 {
+    struct instruction insn;
     switch (opcode & 0xF000)
     {
         case 0x0000:
-            fprintf(stdout, "opcode starts with 0\n");
+            if (opcode == 0x00E0)
+            {
+                fprintf(stdout, "opcode 00E0 - OP_ClearScreen\n");
+                insn.opcode = OP_ClearScreen;
+            }
+            else if (opcode == 0x00EE)
+            {
+                fprintf(stdout, "opcode 00EE - OP_Return\n");
+                insn.opcode = OP_Return;
+            }
             break;
         case 0x1000:
-            fprintf(stdout, "opcode 1NNN (OP_Jump) placeholder\n");
+            fprintf(stdout, "opcode 1NNN - OP_Jump\n");
+            insn.opcode = OP_Jump;
+            insn.arg1 = opcode & 0x0FFF;
             break;
         case 0x2000:
-            fprintf(stdout, "opcode starts with 2\n");
+            fprintf(stdout, "opcode 2NNN - OP_Subroutine\n");
+            insn.opcode = OP_Subroutine;
+            insn.arg1 = opcode & 0x0FFF;
             break;
         case 0x3000:
-            fprintf(stdout, "opcode starts with 3\n");
+            fprintf(stdout, "opcode 3XNN - OP_SkipIfEqualsImmediate\n");
+            insn.opcode = OP_SkipIfEqualsImmediate;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = opcode & 0x00FF;
             break;
         case 0x4000:
-            fprintf(stdout, "opcode starts with 4\n");
+            fprintf(stdout, "opcode 4XNN - OP_SkipIfDoesNotEqualImmediate\n");
+            insn.opcode = OP_SkipIfDoesNotEqualImmediate;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = opcode & 0x00FF;
             break;
         case 0x5000:
-            fprintf(stdout, "opcode starts with 5\n");
+            fprintf(stdout, "opcode 5XY0 - OP_SkipIfEqualsReg\n");
+            insn.opcode = OP_SkipIfEqualsReg;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = (opcode & 0x00F0) >> 4;
             break;
         case 0x6000:
-            fprintf(stdout, "opcode starts with 6\n");
+            fprintf(stdout, "opcode 6XNN - OP_SetRegToImmediate\n");
+            insn.opcode = OP_SetRegToImmediate;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = opcode & 0x00FF;
             break;
         case 0x7000:
-            fprintf(stdout, "opcode starts with 7\n");
+            fprintf(stdout, "opcode 7XNN - OP_AddImmediateToReg\n");
+            insn.opcode = OP_AddImmediateToReg;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = opcode & 0x00FF;
             break;
         case 0x8000: {
-            struct instruction insn;
             switch (opcode & 0x000F)
             {
                 case 0x0000:
@@ -105,22 +133,46 @@ void getInstruction(uint16_t opcode)
             break;
         }
         case 0x9000:
-            fprintf(stdout, "opcode starts with 9\n");
+            fprintf(stdout, "opcode 9XY0 - OP_SkipIfRegDoesNotEqualReg\n");
+            insn.opcode = OP_SkipIfRegDoesNotEqualReg;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = (opcode & 0x00F0) >> 4;
             break;
         case 0xA000:
-            fprintf(stdout, "opcode starts with A\n");
+            fprintf(stdout, "opcode ANNN - OP_SetIToImmediate\n");
+            insn.opcode = OP_SetIToImmediate;
+            insn.arg1 = opcode & 0x0FFF;
             break;
         case 0xB000:
-            fprintf(stdout, "opcode starts with B\n");
+            fprintf(stdout, "opcode BNNN - OP_JumpToImmediatePlusV0\n");
+            insn.opcode = OP_JumpToImmediatePlusV0;
+            insn.arg1 = opcode & 0x0FFF;
             break;
         case 0xC000:
-            fprintf(stdout, "opcode starts with C\n");
+            fprintf(stdout, "opcode CXNN - OP_SetRegToRandANDImmediate\n");
+            insn.opcode = OP_SetRegToRandANDImmediate;
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = opcode & 0x00FF;
             break;
         case 0xD000:
-            fprintf(stdout, "opcode starts with D\n");
+            fprintf(stdout, "opcode DXYN - OP_DrawSpriteAtCoords\n");
+            insn.arg1 = (opcode & 0x0F00) >> 8;
+            insn.arg2 = (opcode & 0x00F0) >> 4;
+            insn.arg3 = opcode & 0x000F;
             break;
         case 0xE000:
-            fprintf(stdout, "opcode starts with E\n");
+            if ((opcode & 0xF0FF) == 0xE09E)
+            {
+                fprintf(stdout, "opcode EX9E - OP_SkipIfKeyPressed");
+                insn.opcode = OP_SkipIfKeyPressed;
+                insn.arg1 = (opcode & 0x0F00) >> 8;
+            }
+            else if ((opcode & 0xF0FF) == 0xE0A1)
+            {
+                fprintf(stdout, "opcode EXA1 - OP_SkipIfKeyNotPressed");
+                insn.opcode = OP_SkipIfKeyNotPressed;
+                insn.arg1 = (opcode & 0x0F00) >> 8;
+            }
             break;
         case 0xF000:
             fprintf(stdout, "opcode starts with F\n");
@@ -129,7 +181,8 @@ void getInstruction(uint16_t opcode)
             fprintf(stderr, "error\n");
             break;
     }
-}
+    return insn;
+};
 
 int main()
 {
