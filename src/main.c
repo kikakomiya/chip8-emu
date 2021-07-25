@@ -12,6 +12,17 @@ struct instruction
     uint16_t arg3;
 };
 
+struct cpu
+{
+    uint8_t registers[16];
+    uint16_t I;
+    uint8_t ram[4096];
+    uint8_t timers[2];
+    uint16_t pc;
+    uint8_t sp;
+    uint16_t stack[16];
+};
+
 struct instruction getInstruction(uint16_t opcode)
 {
     struct instruction insn;
@@ -234,41 +245,43 @@ struct instruction getInstruction(uint16_t opcode)
     return insn;
 };
 
+void executeInstruction(struct instruction insn, struct cpu* cpu)
+{
+    switch(insn.opcode)
+    {
+        case OP_Return:
+            fprintf(stdout, "OP_Return instruction executed!\n");
+            cpu->sp--;
+            cpu->pc = cpu->stack[cpu->sp];
+            break;
+        case OP_Jump:
+            fprintf(stdout, "OP_Jump instruction with argument %x executed!\n", insn.arg1);
+            cpu->pc = insn.arg1;
+            break;
+        case OP_Subroutine:
+            fprintf(stdout, "OP_Subroutine instruction with argument %x executed!\n", insn.arg1);
+            cpu->stack[cpu->sp] = cpu->pc;
+            cpu->sp++;
+            cpu->pc = insn.arg1;
+            break;
+        case OP_SetIToImmediate:
+            fprintf(stdout, "OP_SetIToImmediate instruction with argument %x executed!\n", insn.arg1);
+            cpu->I = insn.arg1;
+            break;
+        case OP_JumpToImmediatePlusV0:
+            fprintf(stdout, "OP_JumpToImmediatePlusV0 instruction with argument %x executed!\n", insn.arg1);
+            cpu->pc = (insn.arg1 + cpu->registers[0]);
+            break;
+        default:
+            fprintf(stderr, "error\n");
+            break;
+    }
+}
+
 int main()
 {
-    getInstruction(0x00E0);
-    getInstruction(0x00EE);
-    getInstruction(0x1234);
-    getInstruction(0x2345);
-    getInstruction(0x3456);
-    getInstruction(0x4567);
-    getInstruction(0x5670);
-    getInstruction(0x6789);
-    getInstruction(0x7890);
-    getInstruction(0x8760);
-    getInstruction(0x8761);
-    getInstruction(0x8762);
-    getInstruction(0x8763);
-    getInstruction(0x8764);
-    getInstruction(0x8765);
-    getInstruction(0x8766);
-    getInstruction(0x8767);
-    getInstruction(0x876E);
-    getInstruction(0x9870);
-    getInstruction(0xA123);
-    getInstruction(0xB123);
-    getInstruction(0xC123);
-    getInstruction(0xD123);
-    getInstruction(0xE19E);
-    getInstruction(0xE1A1);
-    getInstruction(0xF107);
-    getInstruction(0xF10A);
-    getInstruction(0xF115);
-    getInstruction(0xF118);
-    getInstruction(0xF11E);
-    getInstruction(0xF129);
-    getInstruction(0xF133);
-    getInstruction(0xF155);
-    getInstruction(0xF165);
+    struct cpu cpu;
+
+    executeInstruction(getInstruction(0x2345), &cpu);
     return EXIT_SUCCESS;
 }
