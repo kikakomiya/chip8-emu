@@ -115,19 +115,19 @@ struct instruction getInstruction(uint16_t opcode)
                     insn.arg2 = (opcode & 0x00F0) >> 4;
                     break;
                 case 0x0007:
-                    fprintf(stdout, "opcode 8XY7 - OP_SetRegToSubRegValFromReg");
+                    fprintf(stdout, "opcode 8XY7 - OP_SetRegToSubRegValFromReg\n");
                     insn.opcode = OP_SetRegToSubRegValFromReg;
                     insn.arg1 = (opcode & 0x0F00) >> 8;
                     insn.arg2 = (opcode & 0x00F0) >> 4;
                     break;
                 case 0x000E:
-                    fprintf(stdout, "opcode 8XYE - OP_StoreMostSignifAndShiftLeft");
+                    fprintf(stdout, "opcode 8XYE - OP_StoreMostSignifAndShiftLeft\n");
                     insn.opcode = OP_StoreMostSignifAndShiftLeft;
                     insn.arg1 = (opcode & 0x0F00) >> 8;
                     insn.arg2 = (opcode & 0x00F0) >> 4;
                     break;
                 default:
-                    fprintf(stderr, "error");
+                    fprintf(stderr, "error\n");
                     break;
             }
             break;
@@ -163,19 +163,69 @@ struct instruction getInstruction(uint16_t opcode)
         case 0xE000:
             if ((opcode & 0xF0FF) == 0xE09E)
             {
-                fprintf(stdout, "opcode EX9E - OP_SkipIfKeyPressed");
+                fprintf(stdout, "opcode EX9E - OP_SkipIfKeyPressed\n");
                 insn.opcode = OP_SkipIfKeyPressed;
                 insn.arg1 = (opcode & 0x0F00) >> 8;
             }
             else if ((opcode & 0xF0FF) == 0xE0A1)
             {
-                fprintf(stdout, "opcode EXA1 - OP_SkipIfKeyNotPressed");
+                fprintf(stdout, "opcode EXA1 - OP_SkipIfKeyNotPressed\n");
                 insn.opcode = OP_SkipIfKeyNotPressed;
                 insn.arg1 = (opcode & 0x0F00) >> 8;
             }
             break;
         case 0xF000:
-            fprintf(stdout, "opcode starts with F\n");
+            switch(opcode & 0x00FF)
+            {
+                case 0x0007:
+                    fprintf(stdout, "opcode FX07 - OP_SetRegValFromDelayTimer\n");
+                    insn.opcode = OP_SetRegValFromDelayTimer;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x000A:
+                    fprintf(stdout, "opcode FX0A - OP_SetRegValToKeyPressed\n");
+                    insn.opcode = OP_SetRegValToKeyPressed;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0015:
+                    fprintf(stdout, "opcode FX15 - OP_SetDelayTimerFromRegVal\n");
+                    insn.opcode = OP_SetDelayTimerFromRegVal;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0018:
+                    fprintf(stdout, "opcode FX18 - OP_SetSoundTimerFromRegVal\n");
+                    insn.opcode = OP_SetSoundTimerFromRegVal;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x001E:
+                    fprintf(stdout, "opcode FX1E - OP_AddRegToI\n");
+                    insn.opcode = OP_AddRegToI;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0029:
+                    fprintf(stdout, "opcode FX29 - OP_SetIToSpriteLocationInReg\n");
+                    insn.opcode = OP_SetIToSpriteLocationInReg;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0033:
+                    fprintf(stdout, "opcode FX33 - OP_SetBCDOfReg\n");
+                    insn.opcode = OP_SetBCDOfReg;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0055:
+                    fprintf(stdout, "opcode FX55 - OP_StoreRegsInMemory\n");
+                    insn.opcode = OP_StoreRegsInMemory;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                case 0x0065:
+                    fprintf(stdout, "opcode FX65 - OP_GetRegsFromMemory\n");
+                    insn.opcode = OP_GetRegsFromMemory;
+                    insn.arg1 = (opcode & 0x0F00) >> 8;
+                    break;
+                default:
+                    fprintf(stderr, "error\n");
+                    break;
+            }
             break;
         default:
             fprintf(stderr, "error\n");
@@ -186,6 +236,39 @@ struct instruction getInstruction(uint16_t opcode)
 
 int main()
 {
-    getInstruction(0x8214);
+    getInstruction(0x00E0);
+    getInstruction(0x00EE);
+    getInstruction(0x1234);
+    getInstruction(0x2345);
+    getInstruction(0x3456);
+    getInstruction(0x4567);
+    getInstruction(0x5670);
+    getInstruction(0x6789);
+    getInstruction(0x7890);
+    getInstruction(0x8760);
+    getInstruction(0x8761);
+    getInstruction(0x8762);
+    getInstruction(0x8763);
+    getInstruction(0x8764);
+    getInstruction(0x8765);
+    getInstruction(0x8766);
+    getInstruction(0x8767);
+    getInstruction(0x876E);
+    getInstruction(0x9870);
+    getInstruction(0xA123);
+    getInstruction(0xB123);
+    getInstruction(0xC123);
+    getInstruction(0xD123);
+    getInstruction(0xE19E);
+    getInstruction(0xE1A1);
+    getInstruction(0xF107);
+    getInstruction(0xF10A);
+    getInstruction(0xF115);
+    getInstruction(0xF118);
+    getInstruction(0xF11E);
+    getInstruction(0xF129);
+    getInstruction(0xF133);
+    getInstruction(0xF155);
+    getInstruction(0xF165);
     return EXIT_SUCCESS;
 }
