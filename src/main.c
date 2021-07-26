@@ -249,28 +249,189 @@ void executeInstruction(struct instruction insn, struct cpu* cpu)
 {
     switch(insn.opcode)
     {
-        case OP_Return:
+        case OP_Return: // 00EE
             fprintf(stdout, "OP_Return instruction executed!\n");
             cpu->sp--;
             cpu->pc = cpu->stack[cpu->sp];
             break;
-        case OP_Jump:
+        case OP_Jump: // 1NNN
             fprintf(stdout, "OP_Jump instruction with argument %x executed!\n", insn.arg1);
             cpu->pc = insn.arg1;
             break;
-        case OP_Subroutine:
+        case OP_Subroutine: // 2NNN
             fprintf(stdout, "OP_Subroutine instruction with argument %x executed!\n", insn.arg1);
             cpu->stack[cpu->sp] = cpu->pc;
             cpu->sp++;
             cpu->pc = insn.arg1;
             break;
-        case OP_SetIToImmediate:
+        case OP_SkipIfEqualsImmediate: // 3XNN
+            fprintf(stdout, "OP_SkipIfEqualsImmediate instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (cpu->registers[insn.arg1] == insn.arg2)
+            {
+                cpu->pc += 2;
+            }
+            break;
+        case OP_SkipIfDoesNotEqualImmediate: // 4XNN
+            fprintf(stdout, "OP_SkipIfDoesNotEqualImmediate instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (!(cpu->registers[insn.arg1] == insn.arg2))
+            {
+                cpu->pc += 2;
+            }
+            break;
+        case OP_SkipIfEqualsReg: // 5XY0
+            fprintf(stdout, "OP_SkipIfEqualsReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (cpu->registers[insn.arg1] == cpu->registers[insn.arg2])
+            {
+                cpu->pc += 2;
+            }
+            break;
+        case OP_SetRegToImmediate: // 6XNN
+            fprintf(stdout, "OP_SetRegToImmediate instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] = insn.arg2;
+            break;
+        case OP_AddImmediateToReg: // 7XNN
+            fprintf(stdout, "OP_AddImmediateToReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] += insn.arg2;
+            break;
+        case OP_SetRegValToReg: // 8XY0
+            fprintf(stdout, "OP_AddRegValToReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] = cpu->registers[insn.arg2];
+            break;
+        case OP_RegORReg: // 8XY1
+            fprintf(stdout, "OP_RegORReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] = cpu->registers[insn.arg1] | cpu->registers[insn.arg2];
+            break;
+        case OP_RegANDReg: // 8XY2
+            fprintf(stdout, "OP_RegANDReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] = cpu->registers[insn.arg1] & cpu->registers[insn.arg2];
+            break;
+        case OP_RegXORReg: // 8XY3
+            fprintf(stdout, "OP_RegXORReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            cpu->registers[insn.arg1] = cpu->registers[insn.arg1] ^ cpu->registers[insn.arg2];
+            break;
+        case OP_AddRegValToReg: // 8XY4
+            fprintf(stdout, "OP_AddRegValToReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            uint16_t result = cpu->registers[insn.arg1] + cpu->registers[insn.arg2];
+            if (result > 255)
+            {
+                cpu->registers[15] = 1;
+            }
+            else
+            {
+                cpu->registers[15] = 0;
+            }
+            cpu->registers[insn.arg1] = (result & 0xFF);
+            break;
+        case OP_SubRegValFromReg: // 8XY5
+            fprintf(stdout, "OP_SubRegValFromReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (cpu->registers[insn.arg1] > cpu->registers[insn.arg2])
+            {
+                cpu->registers[15] = 1;
+            }
+            else
+            {
+                cpu->registers[15] = 0;
+            }
+            cpu->registers[insn.arg1] -= cpu->registers[insn.arg2];
+            break;
+        case OP_StoreLeastSignifAndShiftRight: // 8XY6
+            fprintf(stdout, "OP_StoreLeastSignifAndShiftRight instruction with argument %x executed!\n", insn.arg1);
+            if ((cpu->registers[insn.arg1] & 1) == 1)
+            {
+                fprintf(stdout, "OP_StoreLeastSignifAndShiftRight: Least significant bit equals 1.\n");
+                cpu->registers[15] = 1;
+            }
+            else
+            {
+                fprintf(stdout, "OP_StoreLeastSignifAndShiftRight: Least significant bit does not equal 1.\n");
+                cpu->registers[15] = 0;
+            }
+            cpu->registers[insn.arg1] /= 2;
+            break;
+        case OP_SetRegToSubRegValFromReg: // 8XY7
+            fprintf(stdout, "OP_SetRegToSubRegValFromReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (cpu->registers[insn.arg2] > cpu->registers[insn.arg1])
+            {
+                cpu->registers[15] = 1;
+            }
+            else
+            {
+                cpu->registers[15] = 0;
+            }
+            cpu->registers[insn.arg1] = cpu->registers[insn.arg2] - cpu->registers[insn.arg1];
+            break;
+        case OP_StoreMostSignifAndShiftLeft: // 8XYE
+            fprintf(stdout, "OP_StoreMostSignifAndShiftLeft instruction with argument %x executed!\n", insn.arg1);
+            if ((cpu->registers[insn.arg1] >> 7) == 1)
+            {
+                cpu->registers[15] = 1;
+            }
+            else
+            {
+                cpu->registers[15] = 0;
+            }
+            cpu->registers[insn.arg1] *= 2;
+            break;
+        case OP_SkipIfRegDoesNotEqualReg: // 9XY0
+            fprintf(stdout, "OP_SkipIfRegDoesNotEqualReg instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            if (!(cpu->registers[insn.arg1] == cpu->registers[insn.arg2]))
+            {
+                cpu->pc += 2;
+            }
+            break;
+        case OP_SetIToImmediate: // ANNN
             fprintf(stdout, "OP_SetIToImmediate instruction with argument %x executed!\n", insn.arg1);
             cpu->I = insn.arg1;
             break;
-        case OP_JumpToImmediatePlusV0:
+        case OP_JumpToImmediatePlusV0: // BNNN
             fprintf(stdout, "OP_JumpToImmediatePlusV0 instruction with argument %x executed!\n", insn.arg1);
             cpu->pc = (insn.arg1 + cpu->registers[0]);
+            break;
+        case OP_SetRegToRandANDImmediate: // CXNN
+            fprintf(stdout, "OP_SetRegToRandANDImmediate instruction with arguments %x and %x executed!\n", insn.arg1, insn.arg2);
+            uint8_t random_number = rand() % 256;
+            cpu->registers[insn.arg1] = random_number & insn.arg2;
+            break;
+        // put DXYN here
+        // put EX9E here
+        // put EXA1 here
+        case OP_SetRegValFromDelayTimer: // FX07
+            fprintf(stdout, "OP_SetRegValFromDelayTimer instruction with argument %x executed!\n", insn.arg1);
+            cpu->registers[insn.arg1] = cpu->timers[0];
+            break;
+        // put FX0A here
+        case OP_SetDelayTimerFromRegVal: // FX15
+            fprintf(stdout, "OP_SetDelayTimerFromRegVal instruction with argument %x executed!\n", insn.arg1);
+            cpu->timers[0] = cpu->registers[insn.arg1];
+            break;
+        case OP_SetSoundTimerFromRegVal: // FX18
+            fprintf(stdout, "OP_SetSoundTimerFromRegVal instruction with argument %x executed!\n", insn.arg1);
+            cpu->timers[1] = cpu->registers[insn.arg1];
+            break;
+        case OP_AddRegToI: // FX1E
+            fprintf(stdout, "OP_AddRegToI instruction with argument %x executed!\n", insn.arg1);
+            cpu->I += cpu->registers[insn.arg1];
+            break;
+        // put FX29 here
+        case OP_SetBCDOfReg: // FX33
+            fprintf(stdout, "OP_SetBCDOfReg instruction with argument %x executed!\n", insn.arg1);
+            cpu->ram[cpu->I] = cpu->registers[insn.arg1] / 100;
+            cpu->ram[cpu->I+1] = (cpu->registers[insn.arg1] / 10) % 10;
+            cpu->ram[cpu->I+2] = cpu->registers[insn.arg1] % 10;
+            break;
+        case OP_StoreRegsInMemory: // FX55
+            fprintf(stdout, "OP_StoreRegsInMemory instruction with argument %x executed!\n", insn.arg1);
+            for (int i = 0; i <= insn.arg1; i++)
+            {
+                cpu->ram[cpu->I+i] = cpu->registers[i];
+            }
+            break;
+        case OP_GetRegsFromMemory: // FX65
+            fprintf(stdout, "OP_GetRegsFromMemory instruction with argument %x executed!\n", insn.arg1);
+            for (int i = 0; i <= insn.arg1; i++)
+            {
+                cpu->registers[i] = cpu->ram[cpu->I+1];
+            }
             break;
         default:
             fprintf(stderr, "error\n");
