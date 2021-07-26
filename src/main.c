@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "opcodes.h"
+#include "sprites.h"
 
 struct instruction
 {
@@ -22,6 +24,30 @@ struct cpu
     uint8_t sp;
     uint16_t stack[16];
 };
+
+void initialiseCPU(struct cpu* cpu)
+{
+    fprintf(stdout, "Initialising CPU...");
+    memset(cpu, 0, sizeof(struct cpu));
+    cpu->pc = 512;
+
+    memcpy(&cpu->ram[SPRITE_ZERO], (uint8_t[]) {0xF0, 0x90, 0x90, 0x90, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_ONE], (uint8_t[]) {0x20, 0x60, 0x20, 0x20, 0x80}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_TWO], (uint8_t[]) {0xF0, 0x10, 0xF0, 0x80, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_THREE], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x80, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_FOUR], (uint8_t[]) {0x90, 0x90, 0xF0, 0x10, 0x10}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_FIVE], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x10, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_SIX], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x90, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_SEVEN], (uint8_t[]) {0xF0, 0x10, 0x20, 0x40, 0x40}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_EIGHT], (uint8_t[]) {0xF0, 0x90, 0xF0, 0x90, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_NINE], (uint8_t[]) {0xF0, 0x90, 0xF0, 0x10, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_A], (uint8_t[]) {0xF0, 0x90, 0xF0, 0x90, 0x90}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_B], (uint8_t[]) {0xE0, 0x90, 0xE0, 0x90, 0xE0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_C], (uint8_t[]) {0xF0, 0x80, 0x80, 0x80, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_D], (uint8_t[]) {0xE0, 0x90, 0x90, 0x90, 0xE0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_E], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x80, 0xF0}, SPRITE_LENGTH);
+    memcpy(&cpu->ram[SPRITE_F], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x80, 0x80}, SPRITE_LENGTH);
+}
 
 struct instruction getInstruction(uint16_t opcode)
 {
@@ -412,7 +438,63 @@ void executeInstruction(struct instruction insn, struct cpu* cpu)
             fprintf(stdout, "OP_AddRegToI instruction with argument %x executed!\n", insn.arg1);
             cpu->I += cpu->registers[insn.arg1];
             break;
-        // put FX29 here
+        case OP_SetIToSpriteLocationInReg: // FX29
+            fprintf(stdout, "OP_SetIToSpriteLocationInReg instruction with argument %x executed!\n", insn.arg1);
+            switch(insn.arg1)
+            {
+                case 0x0:
+                    cpu->I = SPRITE_ZERO;
+                    break;
+                case 0x1:
+                    cpu->I = SPRITE_ONE;
+                    break;
+                case 0x2:
+                    cpu->I = SPRITE_TWO;
+                    break;
+                case 0x3:
+                    cpu->I = SPRITE_THREE;
+                    break;
+                case 0x4:
+                    cpu->I = SPRITE_FOUR;
+                    break;
+                case 0x5:
+                    cpu->I = SPRITE_FIVE;
+                    break;
+                case 0x6:
+                    cpu->I = SPRITE_SIX;
+                    break;
+                case 0x7:
+                    cpu->I = SPRITE_SEVEN;
+                    break;
+                case 0x8:
+                    cpu->I = SPRITE_EIGHT;
+                    break;
+                case 0x9:
+                    cpu->I = SPRITE_NINE;
+                    break;
+                case 0xA:
+                    cpu->I = SPRITE_A;
+                    break;
+                case 0xB:
+                    cpu->I = SPRITE_B;
+                    break;
+                case 0xC:
+                    cpu->I = SPRITE_C;
+                    break;
+                case 0xD:
+                    cpu->I = SPRITE_D;
+                    break;
+                case 0xE:
+                    cpu->I = SPRITE_E;
+                    break;
+                case 0xF:
+                    cpu->I = SPRITE_F;
+                    break;
+                default:
+                    fprintf(stderr, "error\n");
+                    break;
+            }
+            break;
         case OP_SetBCDOfReg: // FX33
             fprintf(stdout, "OP_SetBCDOfReg instruction with argument %x executed!\n", insn.arg1);
             cpu->ram[cpu->I] = cpu->registers[insn.arg1] / 100;
