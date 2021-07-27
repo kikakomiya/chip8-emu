@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -27,7 +29,7 @@ struct cpu
 
 void initialiseCPU(struct cpu* cpu)
 {
-    fprintf(stdout, "Initialising CPU...");
+    fprintf(stdout, "Initialising CPU...\n");
     memset(cpu, 0, sizeof(struct cpu));
     cpu->pc = 512;
 
@@ -521,10 +523,50 @@ void executeInstruction(struct instruction insn, struct cpu* cpu)
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    struct cpu cpu;
+    if (argc < 2)
+    {
+        fprintf(stderr, "Not enough arguments!\n");
+        return EXIT_FAILURE;
+    }
+    FILE* rom = fopen(argv[1], "r");
 
-    executeInstruction(getInstruction(0x2345), &cpu);
+    struct cpu cpu;
+    initialiseCPU(&cpu);
+
+    fread(&cpu.ram[512], sizeof(cpu.ram[0]), (sizeof(cpu.ram)-512), rom);
+
+    SDL_Window* window = NULL;
+    SDL_Surface* screenSurface = NULL;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        fprintf(stderr, "SDL could not intialise! Error: %s\n", SDL_GetError());
+        return EXIT_FAILURE;
+    }
+    else
+    {
+        window = SDL_CreateWindow("CHIP-8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 64, 32, SDL_WINDOW_SHOWN);
+        if (window == NULL)
+        {
+            fprintf(stderr, "Window could not be created! Error: %s\n", SDL_GetError());
+            return EXIT_FAILURE;
+        }
+        else
+        {
+            screenSurface = SDL_GetWindowSurface(window);
+            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+            while (cpu.pc < 4096)
+            {
+                uint16_t raw_insn = ((uint16_t)cpu.ram[cpu.pc] << 8) | cpu.ram[cpu.pc+1];
+                executeInstruction(getInstruction(raw_insn), &cpu);
+            }
+            SDL_UpdateWindowSurface(window);
+            SDL_Delay(2000);
+        }
+    }
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return EXIT_SUCCESS;
 }
