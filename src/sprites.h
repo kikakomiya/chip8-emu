@@ -1,5 +1,8 @@
 #pragma once
 
+#define COLOUR_WHITE 0xFFFFFFFF
+#define COLOUR_BLACK 0x000000FF
+
 #define SPRITE_LENGTH 5
 #define SPRITE_ZERO 0
 #define SPRITE_ONE (SPRITE_ZERO + SPRITE_LENGTH)
