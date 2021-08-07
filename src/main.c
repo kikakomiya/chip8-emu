@@ -51,6 +51,31 @@ void initialiseCPU(struct cpu* cpu)
     memcpy(&cpu->ram[SPRITE_F], (uint8_t[]) {0xF0, 0x80, 0xF0, 0x80, 0x80}, SPRITE_LENGTH);
 }
 
+uint32_t* getPixelAt(int y, int x, SDL_Surface* surface)
+{
+    return ((uint32_t*)surface->pixels)+((surface->pitch/4)*y+x);
+}
+
+void togglePixelAt(int y, int x, SDL_Surface* surface)
+{
+    uint32_t* pixel = getPixelAt(y, x, surface);
+    if (*pixel == COLOUR_WHITE)
+    {
+        *pixel = COLOUR_BLACK;
+    }
+    else
+    {
+        *pixel = COLOUR_WHITE;
+    }
+}
+
+void renderSurface(SDL_Renderer* renderer, SDL_Surface* surface)
+{
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_DestroyTexture(texture);
+}
+
 struct instruction getInstruction(uint16_t opcode)
 {
     struct instruction insn;
@@ -245,12 +270,12 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
             cpu->pc = cpu->stack[cpu->sp];
             break;
         case OP_Jump: // 1NNN
-            cpu->pc = insn.arg1;
+            cpu->pc = insn.arg1-2;
             break;
         case OP_Subroutine: // 2NNN
             cpu->stack[cpu->sp] = cpu->pc;
             cpu->sp++;
-            cpu->pc = insn.arg1;
+            cpu->pc = insn.arg1-2;
             break;
         case OP_SkipIfEqualsImmediate: // 3XNN
             if (cpu->registers[insn.arg1] == insn.arg2)
@@ -355,18 +380,34 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
             cpu->I = insn.arg1;
             break;
         case OP_JumpToImmediatePlusV0: // BNNN
-            cpu->pc = (insn.arg1 + cpu->registers[0]);
+            cpu->pc = (insn.arg1 + cpu->registers[0] - 2);
             break;
         case OP_SetRegToRandANDImmediate: { // CXNN
             uint8_t random_number = rand() % 256;
             cpu->registers[insn.arg1] = random_number & insn.arg2;
             break;
         }
-        case OP_DrawSpriteAtCoords: // DXYN - incomplete
-            //SDL_LockSurface(surface);
-            fprintf(stdout, "Bytes per pixel: %d\n", surface->format->BytesPerPixel);
-            // use surface->pixels here
-            //SDL_UnlockSurface(surface);
+        // TODO: fix Windows support
+        case OP_DrawSpriteAtCoords: // DXYN
+            SDL_LockSurface(surface);
+            int x = cpu->registers[insn.arg1];
+            int y = cpu->registers[insn.arg2];
+            int n = insn.arg3;
+
+            for (int i = 0; i < n; i++)
+            {
+                int line = cpu->ram[cpu->I+i];
+                int k = 7;
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((line & (1 << (k - j))) > 0)
+                    {
+                        togglePixelAt(y+i, x+j, surface);
+                    }
+                }
+            }
+
+            SDL_UnlockSurface(surface);
             break;
         case OP_SkipIfKeyPressed: // EX9E - incomplete
             break;
@@ -456,7 +497,7 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
         case OP_GetRegsFromMemory: // FX65
             for (int i = 0; i <= insn.arg1; i++)
             {
-                cpu->registers[i] = cpu->ram[cpu->I+1];
+                cpu->registers[i] = cpu->ram[cpu->I+i];
             }
             break;
         default:
@@ -480,6 +521,7 @@ int main(int argc, char** argv)
 
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
+    SDL_Renderer* renderer = NULL;
     SDL_Event event;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -487,14 +529,26 @@ int main(int argc, char** argv)
         fprintf(stderr, "SDL could not intialise! Error: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
-    window = SDL_CreateWindow("CHIP-8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 64, 32, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("CHIP-8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 640, SDL_WINDOW_SHOWN);
     if (window == NULL)
     {
         fprintf(stderr, "Window could not be created! Error: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
-    screenSurface = SDL_GetWindowSurface(window);
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    if (renderer == NULL)
+    {
+        fprintf(stderr, "Renderer could not be created! Error: %s\n", SDL_GetError());
+        return EXIT_FAILURE;
+    }
+    SDL_RenderSetLogicalSize(renderer, 64, 32);
+    screenSurface = SDL_CreateRGBSurface(0, 64, 32, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+    if (screenSurface == NULL)
+    {
+        fprintf(stderr, "Surface could not be created! Error: %s\n", SDL_GetError());
+        return EXIT_FAILURE;
+    }
+    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
     fprintf(stdout, "potato\n");
     while (cpu.pc < 4096)
     {
@@ -508,11 +562,15 @@ int main(int argc, char** argv)
         }
         uint16_t raw_insn = ((uint16_t)cpu.ram[cpu.pc] << 8) | cpu.ram[cpu.pc+1];
         executeInstruction(getInstruction(raw_insn), &cpu, screenSurface);
-        SDL_UpdateWindowSurface(window);
-        SDL_Delay(1000);
+        SDL_RenderClear(renderer);
+        renderSurface(renderer, screenSurface);
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
         cpu.pc += 2;
     }
     fprintf(stdout, "carrot of death\n");
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(screenSurface);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return EXIT_SUCCESS;
