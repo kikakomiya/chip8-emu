@@ -325,12 +325,15 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
             int y = cpu->registers[insn.arg2];
             int n = insn.arg3;
 
+            int w = surface->w;
+            int h = surface->h;
+
             for (int i = 0; i < n; i++) {
                 int line = cpu->ram[cpu->I+i];
                 int k = 7;
                 for (int j = 0; j < 8; j++) {
                     if ((line & (1 << (k - j))) > 0) {
-                        togglePixelAt(y+i, x+j, surface, cpu);
+                        togglePixelAt((y+i)%h, (x+j)%w, surface, cpu);
                     }
                 }
             }
