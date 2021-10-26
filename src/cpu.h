@@ -1,5 +1,8 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+#include <stdint.h>
+
 enum opcodes {
     OP_Call, // 0NNN
     OP_ClearScreen, // 00E0
@@ -37,3 +40,24 @@ enum opcodes {
     OP_StoreRegsInMemory, // FX55
     OP_GetRegsFromMemory // FX65
 };
+
+struct instruction {
+    uint16_t opcode;
+    uint16_t arg1;
+    uint16_t arg2;
+    uint16_t arg3;
+};
+
+struct cpu {
+    uint8_t registers[16];
+    uint16_t I;
+    uint8_t ram[4096];
+    uint8_t timers[2];
+    uint16_t pc;
+    uint8_t sp;
+    uint16_t stack[16];
+};
+
+void initialiseCPU(struct cpu* cpu);
+struct instruction getInstruction(uint16_t opcode);
+void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* surface);

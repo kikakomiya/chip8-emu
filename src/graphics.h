@@ -1,5 +1,8 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
+
 #define COLOUR_WHITE 0xFFFFFFFF
 #define COLOUR_BLACK 0x000000FF
 
@@ -20,3 +23,7 @@
 #define SPRITE_D (SPRITE_C + SPRITE_LENGTH)
 #define SPRITE_E (SPRITE_D + SPRITE_LENGTH)
 #define SPRITE_F (SPRITE_E + SPRITE_LENGTH)
+
+uint32_t* getPixelAt(int y, int x, SDL_Surface* surface);
+void togglePixelAt(int y, int x, SDL_Surface* surface);
+void renderSurface(SDL_Renderer* renderer, SDL_Surface* surface);
