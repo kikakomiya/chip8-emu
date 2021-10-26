@@ -28,7 +28,6 @@ struct cpu
     uint16_t pc;
     uint8_t sp;
     uint16_t stack[16];
-    uint8_t keyboard[16];
 };
 
 void initialiseCPU(struct cpu* cpu)
@@ -514,8 +513,8 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
                     }
                     break;
             }
-        }
             break;
+        }
         case OP_SkipIfKeyNotPressed: { // EXA1
             const uint8_t* state = SDL_GetKeyboardState(NULL);
             switch (insn.arg1)
@@ -617,13 +616,29 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
                     }
                     break;
             }
-        }
             break;
+        }
         case OP_SetRegValFromDelayTimer: // FX07
             cpu->registers[insn.arg1] = cpu->timers[0];
             break;
-        case OP_SetRegValToKeyPressed: // FX0A - incomplete
+        case OP_SetRegValToKeyPressed: { // FX0A
+            const uint8_t* state = SDL_GetKeyboardState(NULL);
+            int keycodes[16] = {SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3, SDL_SCANCODE_4, SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_E, SDL_SCANCODE_R, SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F, SDL_SCANCODE_Z, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V};
+            while (1)
+            {
+                for (int i = 0; i < 16; i++)
+                {
+                    if (state[keycodes[i]] == KEY_PRESSED)
+                    {
+                        cpu->registers[insn.arg1] = i;
+                        goto exit;
+                    }
+                }
+                SDL_PumpEvents();
+            }
+            exit:
             break;
+        }
         case OP_SetDelayTimerFromRegVal: // FX15
             cpu->timers[0] = cpu->registers[insn.arg1];
             break;
@@ -766,7 +781,6 @@ int main(int argc, char** argv)
                     fprintf(stdout, "Key press detected\n");
                     break;
                 case SDL_KEYUP:
-                    memset(&cpu.keyboard, 0, sizeof(cpu.keyboard));
                     fprintf(stdout, "Key release detected\n");
                     break;
                 case SDL_QUIT:
