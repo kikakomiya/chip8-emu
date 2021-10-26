@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#define KEY_NOT_PRESSED 0
+#define KEY_PRESSED 1
+
 #include "opcodes.h"
 #include "sprites.h"
 
@@ -25,6 +28,7 @@ struct cpu
     uint16_t pc;
     uint8_t sp;
     uint16_t stack[16];
+    uint8_t keyboard[16];
 };
 
 void initialiseCPU(struct cpu* cpu)
@@ -409,9 +413,211 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
 
             SDL_UnlockSurface(surface);
             break;
-        case OP_SkipIfKeyPressed: // EX9E - incomplete
+        case OP_SkipIfKeyPressed: { // EX9E
+            const uint8_t* state = SDL_GetKeyboardState(NULL);
+            switch (insn.arg1)
+            {
+                case 0x0:
+                    if (state[SDL_SCANCODE_1] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x1:
+                    if (state[SDL_SCANCODE_2] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x2:
+                    if (state[SDL_SCANCODE_3] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x3:
+                    if (state[SDL_SCANCODE_4] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x4:
+                    if (state[SDL_SCANCODE_Q] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x5:
+                    if (state[SDL_SCANCODE_W] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x6:
+                    if (state[SDL_SCANCODE_E] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x7:
+                    if (state[SDL_SCANCODE_R] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x8:
+                    if (state[SDL_SCANCODE_A] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x9:
+                    if (state[SDL_SCANCODE_S] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xA:
+                    if (state[SDL_SCANCODE_D] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xB:
+                    if (state[SDL_SCANCODE_F] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xC:
+                    if (state[SDL_SCANCODE_Z] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xD:
+                    if (state[SDL_SCANCODE_X] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xE:
+                    if (state[SDL_SCANCODE_C] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xF:
+                    if (state[SDL_SCANCODE_V] == KEY_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+            }
+        }
             break;
-        case OP_SkipIfKeyNotPressed: // EXA1 - incomplete
+        case OP_SkipIfKeyNotPressed: { // EXA1
+            const uint8_t* state = SDL_GetKeyboardState(NULL);
+            switch (insn.arg1)
+            {
+                case 0x0:
+                    if (state[SDL_SCANCODE_1] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x1:
+                    if (state[SDL_SCANCODE_2] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x2:
+                    if (state[SDL_SCANCODE_3] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x3:
+                    if (state[SDL_SCANCODE_4] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x4:
+                    if (state[SDL_SCANCODE_Q] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x5:
+                    if (state[SDL_SCANCODE_W] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x6:
+                    if (state[SDL_SCANCODE_E] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x7:
+                    if (state[SDL_SCANCODE_R] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x8:
+                    if (state[SDL_SCANCODE_A] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0x9:
+                    if (state[SDL_SCANCODE_S] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xA:
+                    if (state[SDL_SCANCODE_D] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xB:
+                    if (state[SDL_SCANCODE_F] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xC:
+                    if (state[SDL_SCANCODE_Z] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xD:
+                    if (state[SDL_SCANCODE_X] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xE:
+                    if (state[SDL_SCANCODE_C] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+                case 0xF:
+                    if (state[SDL_SCANCODE_V] == KEY_NOT_PRESSED)
+                    {
+                        cpu->pc += 2;
+                    }
+                    break;
+            }
+        }
             break;
         case OP_SetRegValFromDelayTimer: // FX07
             cpu->registers[insn.arg1] = cpu->timers[0];
@@ -549,15 +755,23 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-    fprintf(stdout, "potato\n");
     while (cpu.pc < 4096)
     {
         fprintf(stdout, "PC: %d\n", cpu.pc);
         while (SDL_PollEvent(&event))
         {
-            if (event.type == SDL_QUIT)
+            switch (event.type)
             {
-                return EXIT_SUCCESS;
+                case SDL_KEYDOWN:
+                    fprintf(stdout, "Key press detected\n");
+                    break;
+                case SDL_KEYUP:
+                    memset(&cpu.keyboard, 0, sizeof(cpu.keyboard));
+                    fprintf(stdout, "Key release detected\n");
+                    break;
+                case SDL_QUIT:
+                    return EXIT_SUCCESS;
+                    break;
             }
         }
         uint16_t raw_insn = ((uint16_t)cpu.ram[cpu.pc] << 8) | cpu.ram[cpu.pc+1];
@@ -568,7 +782,6 @@ int main(int argc, char** argv)
         SDL_Delay(16);
         cpu.pc += 2;
     }
-    fprintf(stdout, "carrot of death\n");
     SDL_DestroyRenderer(renderer);
     SDL_FreeSurface(screenSurface);
     SDL_DestroyWindow(window);
