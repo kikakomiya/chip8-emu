@@ -330,7 +330,7 @@ void executeInstruction(struct instruction insn, struct cpu* cpu, SDL_Surface* s
                 int k = 7;
                 for (int j = 0; j < 8; j++) {
                     if ((line & (1 << (k - j))) > 0) {
-                        togglePixelAt(y+i, x+j, surface);
+                        togglePixelAt(y+i, x+j, surface, cpu);
                     }
                 }
             }
